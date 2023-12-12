@@ -1,2 +1,3 @@
-# kalicmd
-Kali Linux command line for windows
+# KaliCMD
+
+A windows command line in the style of the Linux command line
