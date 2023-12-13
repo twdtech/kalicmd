@@ -18,8 +18,8 @@ using namespace std;
 char currentDirectory[MAX_PATH];
 wstring userProfile;
 
-std::string username;  // Globale Variable für den Benutzernamen
-std::string computername;  // Globale Variable für den Computernamen
+std::string username;  // global variable for username
+std::string computername;  // global variable for computername
 
 void setWindowTitle() {
     std::string title = username + "@" + computername;
@@ -71,8 +71,7 @@ void saveToHistory(const std::wstring& command) {
     if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, userProfile))) {
         std::wstring historyFolder = userProfile;
         historyFolder += L"\\kaliCMD";
-        std::filesystem::create_directories(historyFolder); // Erstelle den Ordner "kaliCMD", falls nicht vorhanden
-
+        std::filesystem::create_directories(historyFolder); // create folder "kaliCMD" in the current user dir if not existant
         std::wstring filePath = historyFolder + L"\\history.txt";
         std::wofstream historyFile(filePath, std::ios_base::app);
         if (historyFile.is_open()) {
@@ -94,12 +93,12 @@ int main() {
     char usernameBuffer[UNLEN + 1];
     DWORD size = UNLEN + 1;
     GetUserNameA(usernameBuffer, &size);
-    username = usernameBuffer;  // Setze den globalen Benutzernamen
+    username = usernameBuffer;  // set global username
 
     char computernameBuffer[MAX_COMPUTERNAME_LENGTH + 1];
     DWORD sizeComputerName = sizeof(computernameBuffer) / sizeof(computernameBuffer[0]);
     GetComputerNameA(computernameBuffer, &sizeComputerName);
-    computername = computernameBuffer;  // Setze den globalen Computernamen
+    computername = computernameBuffer;  // set global computername
 
     SetConsoleOutputCP(CP_UTF8);
     cout << "Kali Linux Style Windows Command Prompt" << endl;
@@ -108,8 +107,8 @@ int main() {
 
 
     while (true) {
-        std::wcout << "\n"; // New line before displaying UI
-        writeUI(); // Display UI
+        std::wcout << "\n"; // new line before displaying UI
+        writeUI(); // display UI
 
         std::wstring inputCmd;
         std::wcout << "";
@@ -117,7 +116,7 @@ int main() {
 
         saveToHistory(inputCmd);
 
-        // Convert the entered command to lowercase for case-insensitive comparison
+        // convert the entered command to lowercase for case-insensitive comparison
         std::wstring command = inputCmd.substr(0, inputCmd.find(L' '));
         std::transform(command.begin(), command.end(), command.begin(), ::towlower);
 
@@ -125,21 +124,21 @@ int main() {
             system("cls"); // Clear the console
         }
         else if (command == L"exit") {
-            break; // Exit the loop and end the program
+            break; // exit the loop and end the program
         }
         else if (command == L"cd") {
             std::string directory = convertToUTF8(inputCmd.substr(inputCmd.find(L' ') + 1));
             _chdir(directory.c_str());
         }
         else if (inputCmd.length() >= 2 && iswalpha(inputCmd[0]) && inputCmd[1] == L':') {
-            // Wenn die Eingabe ein Laufwerksbuchstabe mit einem Doppelpunkt ist
-            wchar_t driveLetter = towupper(inputCmd[0]); // Konvertiere zu Großbuchstaben
+            // if driveletter was specified (e.g. F:)
+            wchar_t driveLetter = towupper(inputCmd[0]); // convert to uppercase
             std::string letter(1, static_cast<char>(driveLetter));
             letter += ":\\";
             std::filesystem::current_path(letter);
         }
         else if (!command.empty()) {
-            // Execute the entered command using system
+            // execute the entered command using system
             system(convertToUTF8(inputCmd).c_str());
         }
     }
