@@ -1,4 +1,9 @@
-﻿#include <iostream>
+// KaliCMD code version 1.0
+// Minimum C++ version needed: C++17
+// Developer: github.com/twdtech
+// Code release date: 12/12/2023
+
+#include <iostream>
 #include <windows.h>
 #include <string>
 #include <unordered_map>
