@@ -194,7 +194,7 @@ int main() {
             printf("Creator: github.com/twdtech\n");
         }
         else if (command.substr(0, 4) == L"sudo") {
-            printf("Coming soon ...");
+            printf("Coming soon ...\n");
         }
         else if (!command.empty()) {
             // execute the entered command using system
