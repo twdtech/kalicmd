@@ -190,11 +190,11 @@ int main() {
             std::filesystem::current_path(letter);
         }
         else if (command == L"about") {
-            printf("Console Version: 1.0\n"); // application information
+            printf("Console Version: 1.0.1\n"); // application information
             printf("Creator: github.com/twdtech\n");
         }
         else if (command.substr(0, 4) == L"sudo") {
-         // coming soon...
+            printf("Coming soon ...");
         }
         else if (!command.empty()) {
             // execute the entered command using system
