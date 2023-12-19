@@ -168,7 +168,7 @@ int main() {
         else if (command == L"cd") {
             std::wstring directory = inputCmd.substr(inputCmd.find(L' ') + 1);
 
-            // Überprüfen Sie, ob der Pfad absolut oder relativ ist
+            // Check whether the path is absolute or relative
             if (directory.front() != L'\\' && directory.front() != L'/') {
                 // Wenn der Pfad relativ ist, fügen Sie das aktuelle Verzeichnis hinzu
                 WCHAR currentDir[MAX_PATH];
@@ -176,12 +176,12 @@ int main() {
                 directory = std::wstring(currentDir) + L"\\" + directory;
             }
 
-            // Prüfen, ob cd \ eingegeben wurde, und dann ins Stammverzeichnis wechseln
+            // Check whether cd \ has been entered and then change to the root directory
             if (directory == L"\\" || directory == L"/") {
                 SetCurrentDirectory(L"\\");
             }
             else {
-                // Öffnen Sie das Verzeichnis und suchen Sie nach Übereinstimmungen
+                // Open the directory and search for matches
                 WIN32_FIND_DATA findData;
                 HANDLE hFind = FindFirstFile(directory.c_str(), &findData);
                 if (hFind == INVALID_HANDLE_VALUE) {
@@ -189,13 +189,13 @@ int main() {
                     std::wcerr << L"Directory " << directory << L" does not exist." << std::endl;
                 }
                 else {
-                    // Überprüfen Sie, ob das gefundene Element ein Verzeichnis ist
+                    // Check if the item found is a directory
                     if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                         // Wechseln Sie das Verzeichnis, wenn es ein Verzeichnis ist
                         SetCurrentDirectory(directory.c_str());
                     }
                     else {
-                        // Fehler, wenn das gefundene Element kein Verzeichnis ist
+                        // Error if the element found is not a directory
                         std::wcerr << L"Error: " << directory << L" is not a directory." << std::endl;
                     }
 
