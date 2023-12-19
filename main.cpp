@@ -170,7 +170,7 @@ int main() {
 
             // Check whether the path is absolute or relative
             if (directory.front() != L'\\' && directory.front() != L'/') {
-                // Wenn der Pfad relativ ist, fügen Sie das aktuelle Verzeichnis hinzu
+                // If the path is relative, add the current directory
                 WCHAR currentDir[MAX_PATH];
                 GetCurrentDirectory(MAX_PATH, currentDir);
                 directory = std::wstring(currentDir) + L"\\" + directory;
@@ -191,7 +191,7 @@ int main() {
                 else {
                     // Check if the item found is a directory
                     if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                        // Wechseln Sie das Verzeichnis, wenn es ein Verzeichnis ist
+                        // Change the directory if it is a directory
                         SetCurrentDirectory(directory.c_str());
                     }
                     else {
