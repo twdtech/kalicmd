@@ -17,8 +17,9 @@ std::string username;  // global variable for username
 std::string computername;  // global variable for computername
 std::atomic<bool> stopCommand(false);
 wstring userProfile;
+int ctrl_press = 0;
 
-std::string convertToUTF8(const std::wstring& wstr) {
+static std::string convertToUTF8(const std::wstring& wstr) {
     int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
     std::string strTo(size_needed, 0);
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &strTo[0], size_needed, NULL, NULL);
@@ -113,6 +114,14 @@ static void signalHandler(int signum) {
     stopCommand = true;
 }
 
+static void handle_signal(int signal) {
+    if (signal == SIGINT) {
+        // Wenn Ctrl+C gedrückt wird, erhöhen Sie den Wert der Variable um 1
+        ctrl_press++;
+        std::cout << "Der Wert der Variable ist jetzt: " << ctrl_press << std::endl;
+    }
+}
+
 int main() {
     // register the signal handler
     std::signal(SIGINT, signalHandler);
@@ -130,7 +139,7 @@ int main() {
 
     SetConsoleOutputCP(CP_UTF8);
     cout << "Kali Linux Style Windows Command Prompt" << endl;
-    cout << "Version: 1.0" << endl;
+    cout << "Version: 1.0.1" << endl;
     cout << "Made by @thewindev" << endl;
 
     while (true) {
@@ -141,6 +150,8 @@ int main() {
         std::wstring inputCmd;
         std::wcout << "";
         std::getline(std::wcin, inputCmd);
+
+        
 
         saveToHistory(inputCmd);
 
@@ -155,32 +166,42 @@ int main() {
             break; // exit the loop and end the program
         }
         else if (command == L"cd") {
-            std::string directory = convertToUTF8(inputCmd.substr(inputCmd.find(L' ') + 1));
+            std::wstring directory = inputCmd.substr(inputCmd.find(L' ') + 1);
 
-            // open directory
-            WIN32_FIND_DATA findData;
-            HANDLE hFind = FindFirstFile(L".", &findData);
-            if (hFind == INVALID_HANDLE_VALUE) {
-                // error while opening the directory
-                continue;
+            // Überprüfen Sie, ob der Pfad absolut oder relativ ist
+            if (directory.front() != L'\\' && directory.front() != L'/') {
+                // Wenn der Pfad relativ ist, fügen Sie das aktuelle Verzeichnis hinzu
+                WCHAR currentDir[MAX_PATH];
+                GetCurrentDirectory(MAX_PATH, currentDir);
+                directory = std::wstring(currentDir) + L"\\" + directory;
             }
 
-            do {
-                // compare the name regardless of upper and lower case letters
-                char cFileName[260];
-                WideCharToMultiByte(CP_ACP, 0, findData.cFileName, -1, cFileName, 260, NULL, NULL);
-                if (_stricmp(cFileName, directory.c_str()) == 0) {
-                    // found a match, update the directory name
-                    directory = cFileName;
-                    break;
+            // Prüfen, ob cd \ eingegeben wurde, und dann ins Stammverzeichnis wechseln
+            if (directory == L"\\" || directory == L"/") {
+                SetCurrentDirectory(L"\\");
+            }
+            else {
+                // Öffnen Sie das Verzeichnis und suchen Sie nach Übereinstimmungen
+                WIN32_FIND_DATA findData;
+                HANDLE hFind = FindFirstFile(directory.c_str(), &findData);
+                if (hFind == INVALID_HANDLE_VALUE) {
+                    // Fehler beim Öffnen des Verzeichnisses
+                    std::wcerr << L"Directory " << directory << L" does not exist." << std::endl;
                 }
-            } while (FindNextFile(hFind, &findData) != 0);
+                else {
+                    // Überprüfen Sie, ob das gefundene Element ein Verzeichnis ist
+                    if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                        // Wechseln Sie das Verzeichnis, wenn es ein Verzeichnis ist
+                        SetCurrentDirectory(directory.c_str());
+                    }
+                    else {
+                        // Fehler, wenn das gefundene Element kein Verzeichnis ist
+                        std::wcerr << L"Error: " << directory << L" is not a directory." << std::endl;
+                    }
 
-            FindClose(hFind);
-
-            WCHAR wDirectory[260];
-            MultiByteToWideChar(CP_ACP, 0, directory.c_str(), -1, wDirectory, 260);
-            _wchdir(wDirectory);
+                    FindClose(hFind);
+                }
+            }
         }
         else if (inputCmd.length() >= 2 && iswalpha(inputCmd[0]) && inputCmd[1] == L':') {
             // if command is drive letter...

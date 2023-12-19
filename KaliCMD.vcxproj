@@ -137,10 +137,16 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="add.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="add.txt" />
+    <ResourceCompile Include="KaliCMD.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="F:\srvOS BGs\terminal.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
