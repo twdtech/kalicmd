@@ -17,9 +17,8 @@ std::string username;  // global variable for username
 std::string computername;  // global variable for computername
 std::atomic<bool> stopCommand(false);
 wstring userProfile;
-int ctrl_press = 0;
 
-static std::string convertToUTF8(const std::wstring& wstr) {
+std::string convertToUTF8(const std::wstring& wstr) {
     int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
     std::string strTo(size_needed, 0);
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &strTo[0], size_needed, NULL, NULL);
@@ -114,14 +113,6 @@ static void signalHandler(int signum) {
     stopCommand = true;
 }
 
-static void handle_signal(int signal) {
-    if (signal == SIGINT) {
-        // Wenn Ctrl+C gedrückt wird, erhöhen Sie den Wert der Variable um 1
-        ctrl_press++;
-        std::cout << "Der Wert der Variable ist jetzt: " << ctrl_press << std::endl;
-    }
-}
-
 int main() {
     // register the signal handler
     std::signal(SIGINT, signalHandler);
@@ -139,7 +130,7 @@ int main() {
 
     SetConsoleOutputCP(CP_UTF8);
     cout << "Kali Linux Style Windows Command Prompt" << endl;
-    cout << "Version: 1.0.1" << endl;
+    cout << "Version: 1.0" << endl;
     cout << "Made by @thewindev" << endl;
 
     while (true) {
@@ -151,14 +142,12 @@ int main() {
         std::wcout << "";
         std::getline(std::wcin, inputCmd);
 
-        
-
         saveToHistory(inputCmd);
 
         // convert the entered command to lowercase for case-insensitive comparison
         std::wstring command = inputCmd.substr(0, inputCmd.find(L' '));
         std::transform(command.begin(), command.end(), command.begin(), ::towlower);
-        
+
         if (command == L"cls") {
             system("cls"); // clear the console
         }
@@ -169,11 +158,30 @@ int main() {
             std::wstring directory = inputCmd.substr(inputCmd.find(L' ') + 1);
 
             // Check whether the path is absolute or relative
-            if (directory.front() != L'\\' && directory.front() != L'/') {
-                // If the path is relative, add the current directory
-                WCHAR currentDir[MAX_PATH];
-                GetCurrentDirectory(MAX_PATH, currentDir);
-                directory = std::wstring(currentDir) + L"\\" + directory;
+            if (directory.front() != L'\\' && directory.front() != L'/' && directory.find(L':') == std::wstring::npos) {
+                // If the path is relative and not "..", add the current directory
+                if (directory != L"..") {
+                    WCHAR currentDir[MAX_PATH];
+                    GetCurrentDirectory(MAX_PATH, currentDir);
+                    directory = std::wstring(currentDir) + L"\\" + directory;
+                }
+                else {
+                    // If the path is "..", remove the last directory from the current directory
+                    WCHAR currentDir[MAX_PATH];
+                    GetCurrentDirectory(MAX_PATH, currentDir);
+                    std::wstring currentDirStr(currentDir);
+                    size_t lastSlashPos = currentDirStr.find_last_of(L"\\/");
+                    if (lastSlashPos != std::wstring::npos) {
+                        // If we are not at the root directory
+                        if (lastSlashPos > 2) {
+                            directory = currentDirStr.substr(0, lastSlashPos);
+                        }
+                        else {
+                            // If we are at the root directory, change to the root directory
+                            directory = L"\\";
+                        }
+                    }
+                }
             }
 
             // Check whether cd \ has been entered and then change to the root directory
@@ -185,8 +193,8 @@ int main() {
                 WIN32_FIND_DATA findData;
                 HANDLE hFind = FindFirstFile(directory.c_str(), &findData);
                 if (hFind == INVALID_HANDLE_VALUE) {
-                    // Fehler beim Öffnen des Verzeichnisses
-                    std::wcerr << L"Directory " << directory << L" does not exist." << std::endl;
+                    // Error while opening the directory
+                    std::wcerr << L"Directory does not exist!" << std::endl;
                 }
                 else {
                     // Check if the item found is a directory
@@ -196,7 +204,7 @@ int main() {
                     }
                     else {
                         // Error if the element found is not a directory
-                        std::wcerr << L"Error: " << directory << L" is not a directory." << std::endl;
+                        std::wcerr << directory << L" Is not a directory." << std::endl;
                     }
 
                     FindClose(hFind);
@@ -211,7 +219,7 @@ int main() {
             std::filesystem::current_path(letter);
         }
         else if (command == L"about") {
-            printf("Console Version: 1.0.1\n"); // application information
+            printf("Console Version: 1.0.2\n"); // application information
             printf("Creator: github.com/twdtech\n");
         }
         else if (command.substr(0, 4) == L"sudo") {
