@@ -130,8 +130,8 @@ int main() {
 
     SetConsoleOutputCP(CP_UTF8);
     cout << "Kali Linux Style Windows Command Prompt" << endl;
-    cout << "Version: 1.0" << endl;
-    cout << "Made by @thewindev" << endl;
+    cout << "Version: 1.0.2" << endl;
+    cout << "Made by github.com/twdtech" << endl;
 
     while (true) {
 
